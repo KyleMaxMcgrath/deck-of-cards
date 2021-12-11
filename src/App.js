@@ -1,23 +1,47 @@
-import logo from './logo.svg';
+import React, {useState, useRef, useEffect} from 'react';
 import './App.css';
+import Card from './Card';
+import axios from 'axios';
+import {v4 as uuid} from 'uuid';
 
 function App() {
+
+  let deckId = useRef('');
+  let [cards, setCards] = useState([]);
+
+  const effect = () => {
+    async function getDeck() {
+      let res = await axios.get('http://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1');
+      deckId.current = res.data.deck_id;
+    }
+    getDeck();
+  }
+
+  useEffect(() => {
+    effect();
+  }, []);
+
+  const draw = () => {
+    if(cards.length==52) {
+      setCards([]);
+      effect();
+    } else {
+      setCards((cards) => ([...cards, <Card key={uuid()} deckId={deckId.current}/>]));
+    }
+  }
+
+  let buttonStyle = cards.length>0 ? 
+  {
+    margin: "-175px 200px 200px 200px"
+  } : 
+  {
+    margin: "175px 200px 200px 200px"
+  };
+  
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <button style={buttonStyle} onClick={draw}>{cards.length==52 ? "Reset" : "Draw"}</button>
+      {cards}
     </div>
   );
 }
